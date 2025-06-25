@@ -1,24 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-   <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Login / Cadastro</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/login.css">
 </head>
 <body>
-      <div class="container" id="formContainer">
-          <h2 id="formTitle">Login</h2>
-          <form id="form">
-            <input type="email" placeholder="Email" required>
-            <input type="password" placeholder="Senha" required>
-            <button type="submit">Entrar</button>
-            <div class="toggle">
-              Não tem conta? <a href="#" onclick="toggleForm()">Cadastre-se</a>
-            </div>
-          </form>
-        </div>
+    <div class="container" id="formContainer">
+        <h2 id="formTitle">Login</h2>
+        <form id="form">
+        </form>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWSOZzZn3Xs-yP85EfAETqiOtsbq7-v8s",
+            authDomain: "projeto-dext.firebaseapp.com",
+            projectId: "projeto-dext",
+            storageBucket: "projeto-dext.firebasestorage.app",
+            messagingSenderId: "424409937202",
+            appId: "1:424409937202:web:a94abae2af636d0d01132b",
+            measurementId: "G-DRKEDLY9BS"
+        };
+
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const analytics = getAnalytics(app);
+
+        window.firebaseAuth = auth;
+    </script>
+    <script type="module" src="../js/login.js"></script>
 </body>
-<script src="../js/login.js"></script>
 </html>
