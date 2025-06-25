@@ -1,115 +1,87 @@
-       
-  const formContainer = document.getElementById('formContainer');
-  const formTitle = document.getElementById('formTitle');
-  const form = document.getElementById('form');
+const auth = window.firebaseAuth;
 
-  let isLogin = true;
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
-  function toggleForm() {
+const formContainer = document.getElementById('formContainer');
+const formTitle = document.getElementById('formTitle');
+const form = document.getElementById('form');
+
+let isLogin = true;
+
+function toggleForm() {
     isLogin = !isLogin;
     formTitle.textContent = isLogin ? 'Login' : 'Cadastro';
     form.innerHTML = isLogin
-      ? `
-      <input type="email" placeholder="Email" required>
-      <input type="password" placeholder="Senha" required>
-      <button type="submit">Entrar</button>
-      <div class="toggle">
-        Não tem conta? <a href="#" onclick="toggleForm()">Cadastre-se</a>
-      </div>
-      `
-      : `
-      <input type="text" placeholder="Nome" required>
-      <input type="email" placeholder="Email" required>
-      <input type="password" placeholder="Senha" required>
-      <button type="submit">Cadastrar</button>
-      <div class="toggle">
-        Já tem conta? <a href="#" onclick="toggleForm()">Entrar</a>
-      </div>
-      `;
+        ? `
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+            <div class="toggle">
+                Não tem conta? <a href="#" onclick="toggleForm()">Cadastre-se</a>
+            </div>
+          `
+        : `
+            <input type="text" id="name" placeholder="Nome" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit">Cadastrar</button>
+            <div class="toggle">
+                Já tem conta? <a href="#" onclick="toggleForm()">Entrar</a>
+            </div>
+          `;
 
-    attachSubmitHandler(); 
-  }
-
-  function attachSubmitHandler() {
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      window.location.href = 'meu-produto.html'; // Redireciona para meu-produto.html ( sem autenticação )
-    });
-  }
     attachSubmitHandler();
-    
+}
 
-    // Função para gerenciar o login
-function setupLogin() {
-  const form = document.getElementById("loginForm");
-  if (!form) return;
+function attachSubmitHandler() {
+    form.removeEventListener('submit', handleFormSubmit);
+    form.addEventListener('submit', handleFormSubmit);
+}
 
-  form.addEventListener("submit", function(event) {
+async function handleFormSubmit(event) {
     event.preventDefault();
 
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
+    const email = form.querySelector('#email').value;
+    const password = form.querySelector('#password').value;
 
-    // Credenciais simuladas
-    const usuarioValido = "admin";
-    const senhaValida = "1234";
-
-    if (username === usuarioValido && password === senhaValida) {
-      // Salva usuário logado no localStorage
-      localStorage.setItem("usuarioLogado", JSON.stringify({
-        username,
-        logado: true,
-        timestamp: new Date().toISOString()
-      }));
-
-      // Redireciona para a página protegida
-      window.location.href = "../html/meu-produto.html";
-    } else {
-      alert("Usuário ou senha inválidos.");
+    try {
+        if (isLogin) {
+            await signInWithEmailAndPassword(auth, email, password);
+            alert("Login realizado com sucesso!");
+            window.location.href = 'meu-produto.html';
+        } else {
+            await createUserWithEmailAndPassword(auth, email, password);
+            alert("Cadastro realizado com sucesso! Faça login agora.");
+            isLogin = true; 
+            toggleForm(); 
+        }
+    } catch (error) {
+        console.error("Erro de autenticação:", error.code, error.message);
+        let errorMessage = "Ocorreu um erro.";
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                errorMessage = 'Este e-mail já está em uso.';
+                break;
+            case 'auth/invalid-email':
+                errorMessage = 'Formato de e-mail inválido.';
+                break;
+            case 'auth/weak-password':
+                errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
+                break;
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+                errorMessage = 'E-mail ou senha inválidos.';
+                break;
+            default:
+                errorMessage = 'Erro de autenticação: ' + error.message;
+        }
+        alert(errorMessage);
     }
-  });
 }
 
-// Função para verificar se o usuário está logado (usada em páginas restritas)
-function verificarLogin() {
-  const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
+window.toggleForm = toggleForm;
 
-  if (!usuario || !usuario.logado) {
-    alert("Você precisa estar logado para acessar esta página.");
-    window.location.href = "../html/login.html";
-  }
-}
-
-// Função para logout
-function setupLogout() {
-  const botaoLogout = document.getElementById("logout-button");
-  if (!botaoLogout) return;
-
-  botaoLogout.addEventListener("click", function(event) {
-    event.preventDefault();
-
-    // Remove o status de logado
-    localStorage.removeItem("usuarioLogado");
-
-    // Redireciona para home
-    window.location.href = "../html/home.html";
-  });
-}
-
-// Inicializa as funções conforme a página
-document.addEventListener("DOMContentLoaded", () => {
-  // Se estiver na página de login
-  if (document.getElementById("loginForm")) {
-    setupLogin();
-  }
-
-  // Se estiver na página protegida
-  if (document.getElementById("dashboard")) {
-    verificarLogin();
-  }
-
-  // Se tiver botão de logout
-  if (document.getElementById("logout-button")) {
-    setupLogout();
-  }
-});
+document.addEventListener('DOMContentLoaded', toggleForm);
